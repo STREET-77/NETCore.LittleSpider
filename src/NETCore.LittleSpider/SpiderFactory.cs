@@ -24,8 +24,6 @@ namespace NETCore.LittleSpider
         private readonly DependenceServices _services;
         private readonly string _defaultDownloader;
 
-        public event Action<Request[]> OnTimeout;
-
         public event Action<Request, Response> OnError;
 
         public event Action OnSchedulerEmpty;
@@ -89,8 +87,6 @@ namespace NETCore.LittleSpider
 
             _consumer?.Close();
             _services.MessageQueue.CloseQueue(Id);
-
-            Dispose();
 
             Logger.LogInformation($"{Id} stopped");
         }
@@ -304,9 +300,6 @@ namespace NETCore.LittleSpider
             catch (Exception e)
             {
                 Logger.LogError($"{Id} exited by exception: {e}");
-            }
-            finally
-            {
                 Stop();
             }
         }
@@ -378,6 +371,7 @@ namespace NETCore.LittleSpider
 
         public void Dispose()
         {
+            Stop();
             ObjectUtilities.DisposeSafely(Logger, _dataFlows);
             ObjectUtilities.DisposeSafely(Logger, _services);
         }

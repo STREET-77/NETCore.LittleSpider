@@ -20,20 +20,17 @@ namespace NETCore.LittleSpider.Agent
 		private readonly ILogger _logger;
 		private readonly IMessageQueue _messageQueue;
 		private AsyncMessageConsumer<byte[]> _consumers;
-		private readonly IHostApplicationLifetime _applicationLifetime;
 		private readonly IDownloader _downloader;
 		private readonly AgentOptions _options;
 
 		public AgentService(ILogger<AgentService> logger,
 			IMessageQueue messageQueue,
 			IOptions<AgentOptions> options,
-			IHostApplicationLifetime applicationLifetime,
 			IDownloader downloader, HostBuilderContext hostBuilderContext)
 		{
 			_options = options.Value;
 			_logger = logger;
 			_messageQueue = messageQueue;
-			_applicationLifetime = applicationLifetime;
 			_downloader = downloader;
 
 			hostBuilderContext.Properties[Const.DefaultDownloader] = downloader.Name;
