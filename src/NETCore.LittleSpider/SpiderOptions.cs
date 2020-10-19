@@ -25,5 +25,10 @@ namespace NETCore.LittleSpider
 		/// 一次重请求队列获取多少个请求
 		/// </summary>
 		public uint Batch { get; set; } = 4;
+
+		/// <summary>
+		/// 当队列中无链接超时（秒）后退出爬虫
+		/// </summary>
+		public int EmptySleepTime { get; set; } = 60;
 	}
 }

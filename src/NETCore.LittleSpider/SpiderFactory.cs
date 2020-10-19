@@ -42,11 +42,6 @@ namespace NETCore.LittleSpider
 
         private ILogger Logger { get; set; }
 
-        public Task ExecuteAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public SpiderFactory(IOptions<SpiderOptions> options,
             DependenceServices services,
             ILogger<SpiderFactory> logger
@@ -87,6 +82,8 @@ namespace NETCore.LittleSpider
 
             _consumer?.Close();
             _services.MessageQueue.CloseQueue(Id);
+
+            Dispose();
 
             Logger.LogInformation($"{Id} stopped");
         }
@@ -152,7 +149,6 @@ namespace NETCore.LittleSpider
             }
 
             await _services.Scheduler.EnqueueAsync(list);
-
             return list.Count;
         }
 
@@ -163,8 +159,8 @@ namespace NETCore.LittleSpider
                 Logger.LogInformation($"Initialize {Id}");
                 await InitializeDataFlowsAsync();
                 await RegisterConsumerAsync(stoppingToken);
-                await RunAsync(stoppingToken);
                 Logger.LogInformation($"{Id} started");
+                await RunAsync(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -271,8 +267,13 @@ namespace NETCore.LittleSpider
         {
             try
             {
+                var sleepTimeLimit = Options.EmptySleepTime * 1000;
+                var sleepTime = 0;
+
                 var bucket = CreateBucket(Options.Speed);
                 var batch = (int)Options.Batch;
+                var start = DateTime.Now;
+                var end = start;
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -280,6 +281,9 @@ namespace NETCore.LittleSpider
 
                     if (requests.Length > 0)
                     {
+                        //重置
+                        sleepTime = 0;
+
                         foreach (var request in requests)
                         {
                             while (bucket.ShouldThrottle(1, out var waitTimeMillis))
@@ -289,17 +293,27 @@ namespace NETCore.LittleSpider
 
                             await PublishRequestMessagesAsync(request);
                         }
+
+                        end = DateTime.Now;
                     }
                     else
                     {
                         OnSchedulerEmpty?.Invoke();
-                        break;
+                        sleepTime += 10;
+                        // 等待空队列超时
+                        if (!await WaitForContinueAsync(sleepTime, sleepTimeLimit, (end - start).TotalSeconds))
+                        {
+                            break;
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
                 Logger.LogError($"{Id} exited by exception: {e}");
+            }
+            finally
+            {
                 Stop();
             }
         }
@@ -315,6 +329,26 @@ namespace NETCore.LittleSpider
             {
                 var defaultTimeUnit = (int)((1 / speed) * 1000);
                 return new FixedTokenBucket(1, 1, defaultTimeUnit);
+            }
+        }
+
+        private async Task<bool> WaitForContinueAsync(int sleepTime, int sleepTimeLimit, double totalSeconds,
+            string waitMessage = null)
+        {
+            if (sleepTime > sleepTimeLimit)
+            {
+                Logger.LogInformation($"Exit: {(int)totalSeconds} seconds");
+                return false;
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(waitMessage))
+                {
+                    Logger.LogInformation(waitMessage);
+                }
+
+                await Task.Delay(10, default);
+                return true;
             }
         }
 
@@ -371,7 +405,7 @@ namespace NETCore.LittleSpider
 
         public void Dispose()
         {
-            Stop();
+            ObjectUtilities.DisposeSafely(Logger, _requestedQueue);
             ObjectUtilities.DisposeSafely(Logger, _dataFlows);
             ObjectUtilities.DisposeSafely(Logger, _services);
         }

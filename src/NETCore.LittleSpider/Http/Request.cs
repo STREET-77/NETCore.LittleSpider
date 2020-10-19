@@ -202,6 +202,8 @@ namespace NETCore.LittleSpider.Http
 			sb.Append(_method);
 			sb.Append(", RequestUri: '");
 			sb.Append(_requestUri == (Uri)null ? "<null>" : _requestUri.ToString());
+			sb.Append(",RequestedTimes: ");
+			sb.Append(RequestedTimes);
 			sb.Append(", Content: ");
 			sb.Append(Content == null ? "<null>" : Content.GetType().ToString());
 			sb.AppendLine(", Headers:");
