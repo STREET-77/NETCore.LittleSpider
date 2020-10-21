@@ -263,8 +263,8 @@ namespace NETCore.LittleSpider.Http
 
 			_disposed = true;
 
-			_headers.Clear();
-			_properties.Clear();
+			_headers?.Clear();
+			_properties?.Clear();
 
 			(Content as IDisposable)?.Dispose();
 		}

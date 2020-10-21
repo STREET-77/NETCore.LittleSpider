@@ -20,8 +20,8 @@ namespace NETCore.LittleSpider.Tests
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _spiderFactory.AddRequestsAsync("https://www1.hkex.com.hk/hkexwidget/data/getequityquote?sym=700&token=evLtsLsBNAUVTPxtGqVeGyeoh92ugLe8YMrfnKxh8e%2fWV6xCsYGONV40730FHwTd&lang=chi&qid=1602811160864&callback=jQuery35106208578400623672_1602811160864&_=1602811160864");
-            await _spiderFactory.AddRequestsAsync("https://www1.hkex.com.hk/hkexwidget/data/getequityquote?sym=701&token=evLtsLsBNAUVTPxtGqVeGyeoh92ugLe8YMrfnKxh8e%2fWV6xCsYGONV40730FHwTd&lang=chi&qid=1602811160864&callback=jQuery35106208578400623672_1602811160864&_=1602811160864");
+            await _spiderFactory.AddRequestsAsync("https://www1.hkex.com.hk/hkexwidget/data/getequityquote?sym=700&token=evLtsLsBNAUVTPxtGqVeG2kWK2tkRx82BArPtGQBbW8FuTNNILpbHnxN9ScxYlfV&lang=chi&qid=1602811160864&callback=jQuery35106208578400623672_1602811160864&_=1602811160864");
+            await _spiderFactory.AddRequestsAsync("https://www1.hkex.com.hk/hkexwidget/data/getequityquote?sym=701&token=evLtsLsBNAUVTPxtGqVeG2kWK2tkRx82BArPtGQBbW8FuTNNILpbHnxN9ScxYlfV&lang=chi&qid=1602811160864&callback=jQuery35106208578400623672_1602811160864&_=1602811160864");
             _spiderFactory.AddDataFlow(new MyDataFlow());
             _spiderFactory.SetName("Test_Spider");
             await _spiderFactory.ExecuteAsync(stoppingToken);

@@ -272,8 +272,6 @@ namespace NETCore.LittleSpider
 
                 var bucket = CreateBucket(Options.Speed);
                 var batch = (int)Options.Batch;
-                var start = DateTime.Now;
-                var end = start;
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -293,15 +291,13 @@ namespace NETCore.LittleSpider
 
                             await PublishRequestMessagesAsync(request);
                         }
-
-                        end = DateTime.Now;
                     }
                     else
                     {
                         OnSchedulerEmpty?.Invoke();
                         sleepTime += 10;
                         // 等待空队列超时
-                        if (!await WaitForContinueAsync(sleepTime, sleepTimeLimit, (end - start).TotalSeconds))
+                        if (!await WaitForContinueAsync(sleepTime, sleepTimeLimit))
                         {
                             break;
                         }
@@ -332,12 +328,10 @@ namespace NETCore.LittleSpider
             }
         }
 
-        private async Task<bool> WaitForContinueAsync(int sleepTime, int sleepTimeLimit, double totalSeconds,
-            string waitMessage = null)
+        private async Task<bool> WaitForContinueAsync(int sleepTime, int sleepTimeLimit, string waitMessage = null)
         {
             if (sleepTime > sleepTimeLimit)
             {
-                Logger.LogInformation($"Exit: {(int)totalSeconds} seconds");
                 return false;
             }
             else
@@ -396,7 +390,7 @@ namespace NETCore.LittleSpider
                     }
                     catch (Exception e)
                     {
-                        Logger.LogError(e, $"{Id} initialize dataFlow {dataFlow.GetType().Name} failed: {e}");
+                        Logger.LogError($"{Id} initialize dataFlow {dataFlow.GetType().Name} failed: {e}");
                         throw e;
                     }
                 }
